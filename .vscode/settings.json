@@ -1,0 +1,7 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "c:\\Users\\nhatt\\Downloads\\lombok.jar",
+        "c:\\Users\\nhatt\\Desktop\\json-simple-1.1.1.jar\\json-simple-1.1.1.jar"
+    ]
+}
