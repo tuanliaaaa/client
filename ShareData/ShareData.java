@@ -1,4 +1,7 @@
 package ShareData;
+import java.util.ArrayList;
+import java.util.List;
+
 import DTO.Dto;
 import lombok.Data;
 
@@ -6,13 +9,21 @@ import lombok.Data;
 public class ShareData {
     private int Mode;
     private Long userID;
-    private Dto messageReceived;
+    private List<Dto> messageReceivedList;
     private Dto videoReceived;
-    private int messageStatus;
     private boolean video;
     private boolean checkOnline;
+    private List<VideoReceivedList> videoReceivedList;
     public ShareData(){
-        this.messageStatus=0;
         this.video=false;
+        this.messageReceivedList= new ArrayList<>();
+        this.videoReceivedList = new ArrayList<>();
+        this.videoReceivedList = new ArrayList<>();
     }
+    public void addMessageReceivedList(Dto newMessage){
+        this.messageReceivedList.add(newMessage);   
+    }
+    // public void addVideoReceivedList(Dto newVideo){
+    //     this.videoReceivedList.add(newVideo);
+    // }
 }

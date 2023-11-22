@@ -77,7 +77,6 @@ public class TCPClient{
         }catch(Exception e){
             System.out.println("NotConnect to Server");
             // e.printStackTrace();
-
         }
     }
 }

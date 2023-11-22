@@ -11,22 +11,18 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-
+import java.util.*;
 import DTO.Dto;
 import ShareData.ShareData;
 
 import javax.swing.*;
+
 public class Chat extends JFrame {
     private JPanel chatPanel;
     private JPanel conversationPanel;
@@ -53,8 +49,10 @@ public class Chat extends JFrame {
             body3.put("command", "getConservation");
             body3.put("conservationID", 1);
             dto3.setBody(body3);
+            lock.lock();
             ObjectOutputStream outToServer3 = new ObjectOutputStream(clientSocket.getOutputStream());
             outToServer3.writeObject(dto3);
+            lock.unlock();
             ObjectInputStream inFromClienxt = new ObjectInputStream(clientSocket.getInputStream());
             Dto receivedObject = (Dto) inFromClienxt.readObject();
             // System.out.println(receivedObject);
@@ -88,28 +86,27 @@ public class Chat extends JFrame {
         @Override
         public void run() {
             while (true) {
-                if(shareData.getMessageStatus()==1){
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                if(shareData.getMessageReceivedList().size()>0){
                     
-                    Dto messageReceived = shareData.getMessageReceived();
-                    if(messageReceived.getBody().get("command").equals("gridMessage")){
+                    Iterator<Dto> messageReceivedList = shareData.getMessageReceivedList().iterator();
+                    while(messageReceivedList.hasNext()){               
+                        Dto messageReceived = messageReceivedList.next();
                         Long conservationID =Long.parseLong(messageReceived.getBody().get("conservationID").toString());
                         for(int i=0;i<conservationList.size();i++){
                             if(Long.parseLong(conservationList.get(i).get("conservationID").toString())==conservationID)
-                            {
-                                
+                            {  
                                 ((JTextArea) conservationList.get(i).get("JTextAreaE")).append(messageReceived.getBody().get("from").toString()+": "+messageReceived.getBody().get("content").toString() +"\n");
                             }
                         }
-                    }else if(messageReceived.getBody().get("command").equals("chấp nhận cuộc gọi")){
-    
+                        messageReceivedList.remove();
                     }
-                       
-                    lock.lock();
-                    shareData.setMessageStatus(0);
-                    lock.unlock();
-
                 }
-                lock.notify();
             }
                  
         }
@@ -345,7 +342,7 @@ public class Chat extends JFrame {
             ((JButton) conservationList.get(i).get("callE")).setText("Call");
             ((JButton) conservationList.get(i).get("callE")).addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    // call();
+                    call();
                 }
             });
             ((JPanel) conservationList.get(i).get("eventAriaPanelE")).add((JButton) conservationList.get(i).get("callE"));
@@ -358,23 +355,25 @@ public class Chat extends JFrame {
 
         pack();
     }            
-    // public void call(){
-    //     Dto dto2 = new Dto();
-    //     Map<String, Object> header2 = new HashMap<>();
-    //     header2.put("function", "conservations");
-    //     header2.put("Token",userID);
-    //     dto2.setHeader(header2);
-    //     Map<String, Object> body2 = new HashMap<>();
-    //     body2.put("command", "callVideo");
-    //     body2.put("conservationID", conservationON);
-    //     dto2.setBody(body2);
-    //     try{
-    //         ObjectOutputStream outToServer2 = new ObjectOutputStream(clientSocket.getOutputStream());
-    //         outToServer2.writeObject(dto2);
-    //     }catch(Exception e){
+    public void call(){
+        Dto dto2 = new Dto();
+            Map<String, Object> header2 = new HashMap<>();
+            header2.put("function", "conservations");
+            header2.put("Token",shareData.getUserID());
+            dto2.setHeader(header2);
+            Map<String, Object> body2 = new HashMap<>();
+            body2.put("command", "callVideo");
+            body2.put("conservationID", 1);
+            dto2.setBody(body2);
+        try{
+            lock.lock();
+            ObjectOutputStream outToServer2 = new ObjectOutputStream(clientSocket.getOutputStream());
+            outToServer2.writeObject(dto2);
+            lock.unlock();
+        }catch(Exception e){
 
-    //     }
-    // }                    
+        }
+    }                    
     
     private void sendMessage() {
         try{
@@ -390,8 +389,10 @@ public class Chat extends JFrame {
             
             body5.put("content",q.getText());
             dto5.setBody(body5);
+            lock.lock();
             ObjectOutputStream outToServer5 = new ObjectOutputStream(clientSocket.getOutputStream());
             outToServer5.writeObject(dto5);
+            lock.unlock();
             q.setText("");
         }catch(Exception e){
             System.out.println("đã out");
